@@ -1,0 +1,65 @@
+// All measures in the model (29). Copied from the final .pbix.
+
+Volume Threshold Value = SELECTEDVALUE('Volume Threshold'[Volume Threshold], 150)
+
+Total Units = SUM(Fact_Sales[Qty])
+
+Gross Cost = SUMX(Fact_Sales,Fact_Sales[Qty] * Fact_Sales[Unit_Cost])
+
+Volume Discount = SUMX(
+    SUMMARIZE(Fact_Sales, Dim_Date[Month], Fact_Sales[SKU_Code]),
+    VAR Units = [Total Units]
+    VAR Cost = [Gross Cost]
+    RETURN IF(Units > [Volume Threshold Value], Cost * 0.1, 0)
+)
+
+Net Payable = [Gross Cost] - [Volume Discount]
+
+Gross Margin = [Total Sales] - [Net Payable]
+
+Margin % = DIVIDE([Gross Margin], [Total Sales])
+
+Total Sales = SUM(Fact_Sales[Line_Amount])
+
+Avg Price = DIVIDE([Total Sales], [Total Units])
+
+Total Rows = COUNTROWS(Fact_Sales)
+
+Rows With Cost = COUNT(Fact_Sales[Unit_Cost])
+
+Rows Missing Cost = [Total Rows] - [Rows With Cost]
+
+Total Ad Spend = SUM(Fact_Ads[Ad_Spend])
+
+Total Budget = SUM(Fact_Budget[Budget])
+
+ROAS = DIVIDE([Total Sales], [Total Ad Spend])
+
+Attribution % Value = SELECTEDVALUE('Attribution %'[Attribution %], 100)
+
+Attributed Sales = [Total Sales] * [Attribution % Value] / 100
+
+Attributed ROAS = DIVIDE([Attributed Sales], [Total Ad Spend])
+
+Budget Utilisation % = DIVIDE([Total Ad Spend], [Total Budget])
+
+Total Impressions = SUM(Fact_Ads[Impression])
+
+Total Clicks = SUM(Fact_Ads[Clicks])
+
+Total Add to Cart = SUM(Fact_Ads[Add_to_Cart])
+
+CTR = DIVIDE([Total Clicks], [Total Impressions])
+
+Add to Cart Rate = DIVIDE([Total Add to Cart], [Total Clicks])
+
+Cost per Add to Cart = DIVIDE([Total Ad Spend], [Total Add to Cart])
+
+Months Run = DISTINCTCOUNT(Fact_Ads[Month_Start])
+
+Campaign Runs = COUNTROWS(Fact_Ads)
+
+Sales Prev Month = CALCULATE([Total Sales], DATEADD(Dim_Date[Date], -1, MONTH))
+
+MoM Growth % = DIVIDE([Total Sales] - [Sales Prev Month], [Sales Prev Month])
+
